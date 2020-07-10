@@ -66,5 +66,5 @@ class Network:
 
 if __name__ == '__main__':
     setUpTrainingSet()
-    test = Network(0.1, 20)
+    test = Network(20)
     test.run()
