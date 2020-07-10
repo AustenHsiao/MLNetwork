@@ -13,7 +13,9 @@ import math
 def setUpTrainingSet():
     trainingSet = pd.read_csv("mnist_train.csv", header=None)
     if os.path.isfile("scaledTS.csv"):
-        os.remove("scaledTS.csv")
+        #os.remove("scaledTS.csv")
+        print("scaledTS.csv already created. Continuing...")
+        return
     print("Creating scaledTS.csv. May take about a minute")
     trainingSet.insert(785,785,1) # insert a column of 1s at column 785 for all rows
     first = trainingSet.loc[0:60000, 0:0] # first part is column 0 of all rows
@@ -42,7 +44,7 @@ class Network:
 
     # reportAccuracy will print the accuracy for the given neural network based off the trainingSet. 
     # The variable, "trainingSet" is a numpy array of training set data. 
-    def reportAccuracy(self, trainingSet):
+    def reportAccuracy(self, currentEpoch, trainingSet):
         hits = 0
 
         for inputUnit in trainingSet:
@@ -51,7 +53,7 @@ class Network:
             for hiddenUnitIndex in range(len(self.hiddenUnit)):
                 hiddenLayerOutput[hiddenUnitIndex] = sigmoid(np.dot(inputUnit[1:], self.hiddenUnit[hiddenUnitIndex]))
 
-            outputLayerOutput = [0] * len(10)
+            outputLayerOutput = [0] * 10
             for outputUnitIndex in range(10):
                 outputLayerOutput[outputUnitIndex] = sigmoid(np.dot(self.outputUnit[outputUnitIndex], hiddenLayerOutput))
 
@@ -62,7 +64,9 @@ class Network:
 
     def run(self):
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
-        print(self.reportAccuracy(trainingSet))
+        start = time.time()
+        print(self.reportAccuracy(0, trainingSet))
+        print("TIME: ", time.time() - start)
 
 if __name__ == '__main__':
     setUpTrainingSet()
