@@ -60,8 +60,8 @@ class Network:
 
             if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
                 hits += 1
-
-        return hits/60000
+        print("Accuracy for epoch ", currentEpoch, ": ", hits/60000, sep="")
+        return
 
     def train_with_single_data(self, dataLine):
         hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer. 
@@ -88,8 +88,7 @@ class Network:
         # calculate deltas for hidden units
         hiddenDelta = [0] * len(self.hiddenUnit)
         for i in range( len(self.hiddenUnit) ):
-            summationTerm = sum([self.outputUnit[j][i] * outputDelta[j] for j in range(10)])
-
+            summationTerm = np.dot(np.transpose(self.outputUnit)[i], outputDelta)
             h = hiddenLayerActivations[i]
             hiddenDelta[i] = h * (1-h) * (summationTerm)
 
@@ -99,33 +98,43 @@ class Network:
                 eta_x_delta = self.learningRate * outputDelta[k]
                 self.outputUnit[k][j] += eta_x_delta * hiddenLayerActivations[j]
 
+        # apply deltaW formula to each weight from input to hidden layer
         for i in range(785):
             for j in range(len(self.hiddenUnit)):
                 eta_x_delta = self.learningRate * hiddenDelta[j]
                 self.hiddenUnit[j][i] += eta_x_delta * dataLine[1+i]
         
+        for j in range(len(self.hiddenUnit)):
+            self.hiddenUnit[j].add((dataLine[1:] * hiddenDelta[j] * self.learningRate))
+        
+        
         return # I pray to god this works
         
+
+    def run_epoch(self, trainingSet, epochstorun):
+        start0 = time.time()
+        self.reportAccuracy(0, trainingSet)
+        print("Initial accuracy completed in", time.time()-start0, "seconds.")
+
+        for j in epochstorun:
+            start = time.time()
+            for data in trainingSet:
+                self.train_with_single_data(data);
+            epoch = time.time() - start
+
+            accstart = time.time()
+            self.reportAccuracy(j+1, trainingSet)
+            print("Epoch ", j, " completed running in ", epoch, " seconds. Calculating the accuracy took ", time.time()-accstart, " seconds.", sep="")
+            
 
 
     def run(self):
         # THIS ISN'T MEANT TO BE RUN. I used this method 
         # to run bits and pieces of my code
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
-        np.random.shuffle(trainingSet)
-        start = time.time()
-        print(self.reportAccuracy(0, trainingSet))
-        print("TIME: ", time.time() - start)
-
-        start = time.time()
+        #np.random.shuffle(trainingSet)
         
-        for i in range(1000):
-            self.train_with_single_data(trainingSet[i])
-        print("TIME TO TRAIN 1000: ", time.time() - start)
 
-        start = time.time()
-        print(self.reportAccuracy(1, trainingSet))
-        print("TIME: ", time.time() - start)
 if __name__ == '__main__':
     setUpTrainingSet()
     test = Network(20)
