@@ -99,13 +99,8 @@ class Network:
                 self.outputUnit[k][j] += eta_x_delta * hiddenLayerActivations[j]
 
         # apply deltaW formula to each weight from input to hidden layer
-        for i in range(785):
-            for j in range(len(self.hiddenUnit)):
-                eta_x_delta = self.learningRate * hiddenDelta[j]
-                self.hiddenUnit[j][i] += eta_x_delta * dataLine[1+i]
-        
         for j in range(len(self.hiddenUnit)):
-            self.hiddenUnit[j].add((dataLine[1:] * hiddenDelta[j] * self.learningRate))
+            self.hiddenUnit[j] = np.add(self.hiddenUnit[j], (dataLine[1:] * hiddenDelta[j] * self.learningRate))
         
         
         return # I pray to god this works
@@ -116,7 +111,7 @@ class Network:
         self.reportAccuracy(0, trainingSet)
         print("Initial accuracy completed in", time.time()-start0, "seconds.")
 
-        for j in epochstorun:
+        for j in range(epochstorun):
             start = time.time()
             for data in trainingSet:
                 self.train_with_single_data(data);
@@ -132,7 +127,9 @@ class Network:
         # THIS ISN'T MEANT TO BE RUN. I used this method 
         # to run bits and pieces of my code
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
-        #np.random.shuffle(trainingSet)
+        np.random.shuffle(trainingSet)
+
+        self.run_epoch(trainingSet, 10)
         
 
 if __name__ == '__main__':
