@@ -34,7 +34,7 @@ def setUpValidationSet():
         return
     
     trainingSet = pd.read_csv("mnist_validation.csv", header=None)
-    print("Creating scaledVS.csv. May take about a minute")
+    print("Creating scaledVS.csv. May take a few seconds")
     trainingSet.insert(785,785,1) # insert a column of 1s at column 785 for all rows
     first = trainingSet.loc[0:10000, 0:0] # first part is column 0 of all rows
     middle = trainingSet.loc[0:10000, 1:784].apply(lambda x: x/255) # middle part is columns 1:784 for all columns
@@ -157,8 +157,23 @@ class Network:
         validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
 
         np.random.shuffle(trainingSet)
-        self.run_epoch(trainingSet, validationSet, 10)
+        self.evenFiltern(15000, trainingSet)
+        #self.run_epoch(trainingSet, validationSet, 50)
         return
+
+    # evenFilter30k takes in the full trainingSet and returns a numpy array of length n (resulting array is approximately even)
+    def evenFiltern(self, n, trainingSet):
+        evenCheck = [0] * 10
+        filteredDataSet = []
+
+        for i in trainingSet:
+            if evenCheck[i[0]] < 10:
+                filteredDataSet.append(i)
+                evenCheck[i[0]] += 1
+                if len(filteredDataSet) == n:
+                    return np.array(filteredDataSet)
+            continue
+        return np.array(filteredDataSet)
 
 if __name__ == '__main__':
     setUpTrainingSet()
