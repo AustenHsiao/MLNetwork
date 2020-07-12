@@ -117,7 +117,11 @@ class Network:
         print(self.reportAccuracy(0, trainingSet))
         print("TIME: ", time.time() - start)
 
-        self.train_with_single_data(trainingSet[0])
+        start = time.time()
+        
+        for i in range(1000):
+            self.train_with_single_data(trainingSet[i])
+        print("TIME TO TRAIN 1000: ", time.time() - start)
 
         start = time.time()
         print(self.reportAccuracy(1, trainingSet))
