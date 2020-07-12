@@ -165,11 +165,12 @@ class Network:
     def evenFiltern(self, n, trainingSet):
         evenCheck = [0] * 10
         filteredDataSet = []
+        evenCap = n/10
 
-        for i in trainingSet:
-            if evenCheck[i[0]] < 10:
+        for i in trainingSet.tolist():
+            if evenCheck[int(i[0])] < evenCap:
                 filteredDataSet.append(i)
-                evenCheck[i[0]] += 1
+                evenCheck[int(i[0])] += 1
                 if len(filteredDataSet) == n:
                     return np.array(filteredDataSet)
             continue
