@@ -11,11 +11,12 @@ import math
 
 # Copy and pasted from assginment 1, creates the training data file after applying /255 to the requisite columns and adding a column of 1s for the bias.
 def setUpTrainingSet():
-    trainingSet = pd.read_csv("mnist_train.csv", header=None)
     if os.path.isfile("scaledTS.csv"):
         #os.remove("scaledTS.csv")
         print("scaledTS.csv already created. Continuing...")
         return
+    
+    trainingSet = pd.read_csv("mnist_train.csv", header=None)
     print("Creating scaledTS.csv. May take about a minute")
     trainingSet.insert(785,785,1) # insert a column of 1s at column 785 for all rows
     first = trainingSet.loc[0:60000, 0:0] # first part is column 0 of all rows
@@ -48,26 +49,79 @@ class Network:
         hits = 0
 
         for inputUnit in trainingSet:
-            hiddenLayerOutput = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias
+            hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer.
             
             for hiddenUnitIndex in range(len(self.hiddenUnit)):
-                hiddenLayerOutput[hiddenUnitIndex] = sigmoid(np.dot(inputUnit[1:], self.hiddenUnit[hiddenUnitIndex]))
+                hiddenLayerActivations[hiddenUnitIndex] = sigmoid(np.dot(inputUnit[1:], self.hiddenUnit[hiddenUnitIndex]))
 
-            outputLayerOutput = [0] * 10
+            outputLayerActivations = [0] * 10
             for outputUnitIndex in range(10):
-                outputLayerOutput[outputUnitIndex] = sigmoid(np.dot(self.outputUnit[outputUnitIndex], hiddenLayerOutput))
+                outputLayerActivations[outputUnitIndex] = sigmoid(np.dot(self.outputUnit[outputUnitIndex], hiddenLayerActivations))
 
-            if outputLayerOutput.index(max(outputLayerOutput)) == inputUnit[0]:
+            if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
                 hits += 1
 
         return hits/60000
 
+    def train_with_single_data(self, dataLine):
+        hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer. 
+        
+        # calculate the hidden layer activations
+        for hiddenUnitIndex in range(len(self.hiddenUnit)):
+            hiddenLayerActivations[hiddenUnitIndex] = sigmoid(np.dot(dataLine[1:], self.hiddenUnit[hiddenUnitIndex]))
+
+        # calculate the output layer activations (the outputs)
+        outputLayerActivations = [0] * 10
+        for outputUnitIndex in range(10):
+            outputLayerActivations[outputUnitIndex] = sigmoid(np.dot(self.outputUnit[outputUnitIndex], hiddenLayerActivations))
+
+        # calculate deltas for output units
+        outputDelta = [0] * 10
+        for i in range(10):
+            if i == dataLine[0]:
+                t = 0.9
+            else:
+                t = 0.1
+            o = outputLayerActivations[i]
+            outputDelta[i] = o * (1-o) * (t-o)
+
+        # calculate deltas for hidden units
+        hiddenDelta = [0] * len(self.hiddenUnit)
+        for i in range( len(self.hiddenUnit) ):
+            summationTerm = sum([self.outputUnit[j][i] * outputDelta[j] for j in range(10)])
+
+            h = hiddenLayerActivations[i]
+            hiddenDelta[i] = h * (1-h) * (summationTerm)
+
+        # apply the deltaW formula to each weight from hidden layer to output layer
+        for j in range(len(self.hiddenUnit)): 
+            for k in range(10):
+                eta_x_delta = self.learningRate * outputDelta[k]
+                self.outputUnit[k][j] += eta_x_delta * hiddenLayerActivations[j]
+
+        for i in range(785):
+            for j in range(len(self.hiddenUnit)):
+                eta_x_delta = self.learningRate * hiddenDelta[j]
+                self.hiddenUnit[j][i] += eta_x_delta * dataLine[1+i]
+        
+        return # I pray to god this works
+        
+
+
     def run(self):
+        # THIS ISN'T MEANT TO BE RUN. I used this method 
+        # to run bits and pieces of my code
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
+        trainingSet.random.shuffle()
         start = time.time()
         print(self.reportAccuracy(0, trainingSet))
         print("TIME: ", time.time() - start)
 
+        self.train_with_single_data(trainingSet[0])
+
+        start = time.time()
+        print(self.reportAccuracy(1, trainingSet))
+        print("TIME: ", time.time() - start)
 if __name__ == '__main__':
     setUpTrainingSet()
     test = Network(20)
