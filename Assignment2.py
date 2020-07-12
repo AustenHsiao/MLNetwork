@@ -25,7 +25,24 @@ def setUpTrainingSet():
     # I split up the document like this so I can apply /255 to the center columns
     (first.join(middle)).join(end).to_csv("scaledTS.csv", mode="a", header=False, index=False) # Here is where I join all the pieces together and write it to scaledTS.csv
     print("Done")
-    return	
+    return
+
+def setUpValidationSet():
+    if os.path.isfile("scaledVS.csv"):
+        #os.remove("scaledTS.csv")
+        print("scaledVS.csv already created. Continuing...")
+        return
+    
+    trainingSet = pd.read_csv("mnist_validation.csv", header=None)
+    print("Creating scaledVS.csv. May take about a minute")
+    trainingSet.insert(785,785,1) # insert a column of 1s at column 785 for all rows
+    first = trainingSet.loc[0:10000, 0:0] # first part is column 0 of all rows
+    middle = trainingSet.loc[0:10000, 1:784].apply(lambda x: x/255) # middle part is columns 1:784 for all columns
+    end = trainingSet.loc[0:10000, 785:785] # end part is the column of ones
+    # I split up the document like this so I can apply /255 to the center columns
+    (first.join(middle)).join(end).to_csv("scaledVS.csv", mode="a", header=False, index=False) # Here is where I join all the pieces together and write it to scaledTS.csv
+    print("Done")
+    return		
 
 # applies the sigmoid function to the parameter
 def sigmoid(n):
@@ -137,12 +154,14 @@ class Network:
     def run(self):
         # I used this method to run bits and pieces of my code at a time.
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
-        validationSet = pd.read_csv("mnist_validation.csv", header=None).to_numpy()
+        validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
+
         np.random.shuffle(trainingSet)
         self.run_epoch(trainingSet, validationSet, 10)
         return
 
 if __name__ == '__main__':
     setUpTrainingSet()
+    setUpValidationSet()
     test = Network(20)
     test.run()
