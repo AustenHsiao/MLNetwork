@@ -112,7 +112,7 @@ class Network:
         # THIS ISN'T MEANT TO BE RUN. I used this method 
         # to run bits and pieces of my code
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
-        trainingSet.random.shuffle()
+        np.random.shuffle(trainingSet)
         start = time.time()
         print(self.reportAccuracy(0, trainingSet))
         print("TIME: ", time.time() - start)
