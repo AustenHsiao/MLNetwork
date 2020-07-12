@@ -27,6 +27,7 @@ def setUpTrainingSet():
     print("Done")
     return	
 
+# applies the sigmoid function to the parameter
 def sigmoid(n):
     return 1/(1 + math.exp(-n))
 
@@ -34,10 +35,10 @@ def sigmoid(n):
 class Network:
 
     # Constructor allows us to set up the experiment. 
-    # We always want 10 output units-- the number of inputs they take depends on the number of hidden units
-    # Variable amount of hidden units
-    # All unit weights are randomly chosen to be between [-0.05, +0.05)
-    # For assignment 2, the learningRate is 0.1
+    # -We always want 10 output units-- the number of inputs they take depends on the number of hidden units
+    # -Variable amount of hidden units
+    # -All unit weights are randomly chosen to be between [-0.05, +0.05)
+    # -For assignment 2, the learningRate is fixed at 0.1
     def __init__(self, numberOfHiddenUnits):
         self.outputUnit = np.random.uniform(low=-0.05, high=0.05, size=(10,numberOfHiddenUnits+1))
         self.learningRate = 0.1
@@ -93,19 +94,15 @@ class Network:
             hiddenDelta[i] = h * (1-h) * (summationTerm)
 
         # apply the deltaW formula to each weight from hidden layer to output layer
-        for j in range(len(self.hiddenUnit)): 
-            for k in range(10):
-                eta_x_delta = self.learningRate * outputDelta[k]
-                self.outputUnit[k][j] += eta_x_delta * hiddenLayerActivations[j]
+        for k in range(10):
+            self.outputUnit[k] = np.add(self.outputUnit[k], (np.array(hiddenLayerActivations) * outputDelta[k] * self.learningRate))
 
         # apply deltaW formula to each weight from input to hidden layer
         for j in range(len(self.hiddenUnit)):
             self.hiddenUnit[j] = np.add(self.hiddenUnit[j], (dataLine[1:] * hiddenDelta[j] * self.learningRate))
-        
-        
-        return # I pray to god this works
-        
+        return
 
+    # Runs epochstorun number of epochs using the trainingSet (passed in as a numpy array). Prints run times in seconds and accuracies.    
     def run_epoch(self, trainingSet, epochstorun):
         start0 = time.time()
         self.reportAccuracy(0, trainingSet)
@@ -120,17 +117,14 @@ class Network:
             accstart = time.time()
             self.reportAccuracy(j+1, trainingSet)
             print("Epoch ", j, " completed running in ", epoch, " seconds. Calculating the accuracy took ", time.time()-accstart, " seconds.", sep="")
+        return
             
-
-
     def run(self):
-        # THIS ISN'T MEANT TO BE RUN. I used this method 
-        # to run bits and pieces of my code
+        # I used this method to run bits and pieces of my code at a time.
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
         np.random.shuffle(trainingSet)
-
         self.run_epoch(trainingSet, 10)
-        
+        return
 
 if __name__ == '__main__':
     setUpTrainingSet()
