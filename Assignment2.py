@@ -46,9 +46,8 @@ class Network:
 
     # reportAccuracy will print the accuracy for the given neural network based off the trainingSet. 
     # The variable, "trainingSet" is a numpy array of training set data. 
-    def reportAccuracy(self, currentEpoch, trainingSet):
+    def reportAccuracy(self, currentEpoch, trainingSet, validationSet):
         hits = 0
-
         for inputUnit in trainingSet:
             hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer.
             
@@ -61,7 +60,23 @@ class Network:
 
             if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
                 hits += 1
-        print("Accuracy for epoch ", currentEpoch, ": ", hits/60000, sep="")
+        print("Training set accuracy for epoch ", currentEpoch, ": ", hits/60000, sep="")
+
+        hits = 0
+        for inputUnit in validationSet:
+            hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer.
+            
+            for hiddenUnitIndex in range(len(self.hiddenUnit)):
+                hiddenLayerActivations[hiddenUnitIndex] = sigmoid(np.dot(inputUnit[1:], self.hiddenUnit[hiddenUnitIndex]))
+
+            outputLayerActivations = [0] * 10
+            for outputUnitIndex in range(10):
+                outputLayerActivations[outputUnitIndex] = sigmoid(np.dot(self.outputUnit[outputUnitIndex], hiddenLayerActivations))
+
+            if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
+                hits += 1
+        print("Validation set accuracy for epoch ", currentEpoch, ": ", hits/10000, sep="")
+
         return
 
     def train_with_single_data(self, dataLine):
@@ -103,9 +118,9 @@ class Network:
         return
 
     # Runs epochstorun number of epochs using the trainingSet (passed in as a numpy array). Prints run times in seconds and accuracies.    
-    def run_epoch(self, trainingSet, epochstorun):
+    def run_epoch(self, trainingSet, validationSet, epochstorun):
         start0 = time.time()
-        self.reportAccuracy(0, trainingSet)
+        self.reportAccuracy(0, trainingSet, validationSet)
         print("Initial accuracy completed in", time.time()-start0, "seconds.")
 
         for j in range(epochstorun):
@@ -115,15 +130,16 @@ class Network:
             epoch = time.time() - start
 
             accstart = time.time()
-            self.reportAccuracy(j+1, trainingSet)
+            self.reportAccuracy(j+1, trainingSet, validationSet)
             print("Epoch ", j, " completed running in ", epoch, " seconds. Calculating the accuracy took ", time.time()-accstart, " seconds.", sep="")
         return
             
     def run(self):
         # I used this method to run bits and pieces of my code at a time.
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
+        validationSet = pd.read_csv("mnist_validation.csv", header=None).to_numpy()
         np.random.shuffle(trainingSet)
-        self.run_epoch(trainingSet, 10)
+        self.run_epoch(trainingSet, validationSet, 10)
         return
 
 if __name__ == '__main__':
