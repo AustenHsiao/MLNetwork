@@ -97,7 +97,7 @@ class Network:
         print("Validation set accuracy for epoch ", currentEpoch, ": ", vacc, sep="")
 
         ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
-        pd.DataFrame({'epoch':[currentEpoch],'training':[tacc],'validation':[vacc]}, columns=['epoch','training','validation']).to_csv("accuracy20.csv", mode='a', header=False, index=False)
+        pd.DataFrame({'epoch':[currentEpoch],'training':[tacc],'validation':[vacc]}, columns=['epoch','training','validation']).to_csv("accuracy.csv", mode='a', header=False, index=False)
         ####################################################################################################################################################################
         return
 
@@ -159,7 +159,7 @@ class Network:
     # generates a confusion matrix with the weights at the time it is called
     def generate_confusion_matrix(self, testSet):
         if os.path.isfile("confusion_matrix.csv"):
-    			os.remove("confusion_matrix.csv")
+    		os.remove("confusion_matrix.csv")
 
         cMatrix = np.zeros((10,10))
         for inputUnit in testSet:

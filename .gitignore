@@ -1,5 +1,3 @@
 mnist_train.csv
 mnist_validation.csv
-20_hiddenUnits/
-50_hiddenUnits/
-100_hiddenUnits/
+EXPT1/
