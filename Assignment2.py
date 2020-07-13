@@ -56,10 +56,12 @@ class Network:
     # -Variable amount of hidden units
     # -All unit weights are randomly chosen to be between [-0.05, +0.05)
     # -For assignment 2, the learningRate is fixed at 0.1
-    def __init__(self, numberOfHiddenUnits):
+    def __init__(self, numberOfHiddenUnits, accuracyfilename, cmatrixfilename):
         self.outputUnit = np.random.uniform(low=-0.05, high=0.05, size=(10,numberOfHiddenUnits+1))
         self.learningRate = 0.1
         self.hiddenUnit = np.random.uniform(low=-0.05, high=0.05, size=(numberOfHiddenUnits,785))
+        self.accFile = accuracyfilename
+        self.cMatFile = cmatrixfilename
 
     # reportAccuracy will print the accuracy for the given neural network based off the trainingSet. 
     # The variable, "trainingSet" is a numpy array of training set data. 
@@ -97,7 +99,7 @@ class Network:
         print("Validation set accuracy for epoch ", currentEpoch, ": ", vacc, sep="")
 
         ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
-        pd.DataFrame({'epoch':[currentEpoch],'training':[tacc],'validation':[vacc]}, columns=['epoch','training','validation']).to_csv("accuracy.csv", mode='a', header=False, index=False)
+        pd.DataFrame({'epoch':[currentEpoch],'training':[tacc],'validation':[vacc]}, columns=['epoch','training','validation']).to_csv(self.accFile, mode='a', header=False, index=False)
         ####################################################################################################################################################################
         return
 
@@ -177,7 +179,7 @@ class Network:
             cMatrix[actual][predicted] += 1
 
         ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
-        pd.DataFrame(data=cMatrix).to_csv("confusion_matrix.csv", mode='a', header=False, index=False)
+        pd.DataFrame(data=cMatrix).to_csv(self.cMatFile, mode='a', header=False, index=False)
         ####################################################################################################################################################################
         return
 
@@ -202,22 +204,26 @@ class Network:
         validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
         np.random.shuffle(trainingSet)
 
-#        self.evenFiltern(15000, trainingSet)
         self.run_epoch(trainingSet, validationSet, 50)
+        self.generate_confusion_matrix(validationSet)
         return
 
-    def runEXPT2(self):
+    def runEXPT2(self, splitnum):
         # for expt 2, set hidden units to 100
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
         validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
         np.random.shuffle(trainingSet)
 
-        trainingSet = self.evenFiltern(15000, trainingSet) #15000 is 1/4; 30000 is 1/2
+        trainingSet = self.evenFiltern(splitnum, trainingSet) #15000 is 1/4; 30000 is 1/2
         self.run_epoch(trainingSet, validationSet, 50)
+        self.generate_confusion_matrix(validationSet)
         return
 
 if __name__ == '__main__':
     setUpTrainingSet()
     setUpValidationSet()
-    test = Network(100)
-    test.runEXPT2()
+    test = Network(100, "accuracy100_15k_expt2.csv", "confusion_matrix100_15k_expt2.csv")
+    test.runEXPT2(15000)
+
+    test2 = Network(100, "accuracy100_30k_expt2.csv", "confusion_matrix100_30k_expt2.csv")
+    test2.runEXPT2(30000)
