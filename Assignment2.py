@@ -155,16 +155,6 @@ class Network:
             self.reportAccuracy(j+1, trainingSet, validationSet)
             print("Epoch ", j, " completed running in ", epoch, " seconds. Calculating the accuracy took ", time.time()-accstart, " seconds.", sep="")
         return
-            
-    def run(self):
-        # I used this method to run bits and pieces of my code at a time.
-        trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
-        validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
-        np.random.shuffle(trainingSet)
-
-#        self.evenFiltern(15000, trainingSet)
-        self.run_epoch(trainingSet, validationSet, 50)
-        return
 
     # generates a confusion matrix with the weights at the time it is called
     def generate_confusion_matrix(self, testSet):
@@ -182,13 +172,14 @@ class Network:
             for outputUnitIndex in range(10):
                 outputLayerActivations[outputUnitIndex] = sigmoid(np.dot(self.outputUnit[outputUnitIndex], hiddenLayerActivations))
             
-            predicted = outputLayerActivations.index(max(outputLayerActivations))
-            actual = inputUnit[0]
+            predicted = int(outputLayerActivations.index(max(outputLayerActivations)))
+            actual = int(inputUnit[0])
             cMatrix[actual][predicted] += 1
-        
-        pd.DataFrame(data=cMatrix).to_csv("confusion_matrix.csv", mode='a', header=False, index=False)
-		return
 
+        ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
+        pd.DataFrame(data=cMatrix).to_csv("confusion_matrix.csv", mode='a', header=False, index=False)
+        ####################################################################################################################################################################
+        return
 
     # evenFilter30k takes in the full trainingSet and returns a numpy array of length n (resulting array is approximately even)-- Used in expt2
     def evenFiltern(self, n, trainingSet):
@@ -204,6 +195,16 @@ class Network:
                     return np.array(filteredDataSet)
             continue
         return np.array(filteredDataSet)
+    
+    def run(self):
+        # I used this method to run bits and pieces of my code at a time.
+        trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
+        validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
+        np.random.shuffle(trainingSet)
+
+#        self.evenFiltern(15000, trainingSet)
+        self.run_epoch(trainingSet, validationSet, 50)
+        return
 
 if __name__ == '__main__':
     setUpTrainingSet()
