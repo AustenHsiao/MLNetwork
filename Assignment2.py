@@ -77,7 +77,7 @@ class Network:
 
             if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
                 hits += 1
-        tacc = hits/60000
+        tacc = hits/len(trainingSet)
         print("Training set accuracy for epoch ", currentEpoch, ": ", tacc, sep="")
 
         hits = 0
@@ -93,7 +93,7 @@ class Network:
 
             if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
                 hits += 1
-        vacc = hits/10000
+        vacc = hits/len(validationSet)
         print("Validation set accuracy for epoch ", currentEpoch, ": ", vacc, sep="")
 
         ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
@@ -196,7 +196,7 @@ class Network:
             continue
         return np.array(filteredDataSet)
     
-    def run(self):
+    def runEXPT1(self):
         # I used this method to run bits and pieces of my code at a time.
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
         validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
@@ -206,8 +206,18 @@ class Network:
         self.run_epoch(trainingSet, validationSet, 50)
         return
 
+    def runEXPT2(self):
+        # for expt 2, set hidden units to 100
+        trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
+        validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
+        np.random.shuffle(trainingSet)
+
+        trainingSet = self.evenFiltern(15000, trainingSet) #15000 is 1/4; 30000 is 1/2
+        self.run_epoch(trainingSet, validationSet, 50)
+        return
+
 if __name__ == '__main__':
     setUpTrainingSet()
     setUpValidationSet()
-    test = Network(20)
-    test.run()
+    test = Network(100)
+    test.runEXPT2()
