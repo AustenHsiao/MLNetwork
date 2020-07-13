@@ -97,7 +97,7 @@ class Network:
         print("Validation set accuracy for epoch ", currentEpoch, ": ", vacc, sep="")
 
         ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
-        pd.DataFrame({'epoch':[currentEpoch],'training':[trainingAccuracy],'validation':[validationAccuracy]}, columns=['epoch','training','validation']).to_csv("accuracy20.csv", mode='a', header=False, index=False)
+        pd.DataFrame({'epoch':[currentEpoch],'training':[tacc],'validation':[vacc]}, columns=['epoch','training','validation']).to_csv("accuracy20.csv", mode='a', header=False, index=False)
         ####################################################################################################################################################################
         return
 
@@ -165,6 +165,30 @@ class Network:
 #        self.evenFiltern(15000, trainingSet)
         self.run_epoch(trainingSet, validationSet, 50)
         return
+
+    # generates a confusion matrix with the weights at the time it is called
+    def generate_confusion_matrix(self, testSet):
+        if os.path.isfile("confusion_matrix.csv"):
+    			os.remove("confusion_matrix.csv")
+
+        cMatrix = np.zeros((10,10))
+        for inputUnit in testSet:
+            hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer.
+            
+            for hiddenUnitIndex in range(len(self.hiddenUnit)):
+                hiddenLayerActivations[hiddenUnitIndex] = sigmoid(np.dot(inputUnit[1:], self.hiddenUnit[hiddenUnitIndex]))
+
+            outputLayerActivations = [0] * 10
+            for outputUnitIndex in range(10):
+                outputLayerActivations[outputUnitIndex] = sigmoid(np.dot(self.outputUnit[outputUnitIndex], hiddenLayerActivations))
+            
+            predicted = outputLayerActivations.index(max(outputLayerActivations))
+            actual = inputUnit[0]
+            cMatrix[actual][predicted] += 1
+        
+        pd.DataFrame(data=cMatrix).to_csv("confusion_matrix.csv", mode='a', header=False, index=False)
+		return
+
 
     # evenFilter30k takes in the full trainingSet and returns a numpy array of length n (resulting array is approximately even)-- Used in expt2
     def evenFiltern(self, n, trainingSet):
