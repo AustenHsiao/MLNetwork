@@ -77,7 +77,8 @@ class Network:
 
             if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
                 hits += 1
-        print("Training set accuracy for epoch ", currentEpoch, ": ", hits/60000, sep="")
+        tacc = hits/60000
+        print("Training set accuracy for epoch ", currentEpoch, ": ", tacc, sep="")
 
         hits = 0
         for inputUnit in validationSet:
@@ -92,8 +93,12 @@ class Network:
 
             if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
                 hits += 1
-        print("Validation set accuracy for epoch ", currentEpoch, ": ", hits/10000, sep="")
+        vacc = hits/10000
+        print("Validation set accuracy for epoch ", currentEpoch, ": ", vacc, sep="")
 
+        ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
+        pd.DataFrame({'epoch':[currentEpoch],'training':[trainingAccuracy],'validation':[validationAccuracy]}, columns=['epoch','training','validation']).to_csv("accuracy20.csv", mode='a', header=False, index=False)
+        ####################################################################################################################################################################
         return
 
     def train_with_single_data(self, dataLine):
@@ -155,13 +160,13 @@ class Network:
         # I used this method to run bits and pieces of my code at a time.
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
         validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
-
         np.random.shuffle(trainingSet)
-        self.evenFiltern(15000, trainingSet)
-        #self.run_epoch(trainingSet, validationSet, 50)
+
+#        self.evenFiltern(15000, trainingSet)
+        self.run_epoch(trainingSet, validationSet, 50)
         return
 
-    # evenFilter30k takes in the full trainingSet and returns a numpy array of length n (resulting array is approximately even)
+    # evenFilter30k takes in the full trainingSet and returns a numpy array of length n (resulting array is approximately even)-- Used in expt2
     def evenFiltern(self, n, trainingSet):
         evenCheck = [0] * 10
         filteredDataSet = []
