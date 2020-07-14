@@ -151,8 +151,6 @@ class Network:
             self.delWhidden_last[k] = currentDelWhidden
         return
 
-        
-
     # Runs epochstorun number of epochs using the trainingSet (passed in as a numpy array). Prints run times in seconds and accuracies.    
     def run_epoch(self, trainingSet, validationSet, epochstorun):
         start0 = time.time()
@@ -168,6 +166,8 @@ class Network:
             accstart = time.time()
             self.reportAccuracy(j+1, trainingSet, validationSet)
             print("Epoch ", j, " completed running in ", epoch, " seconds. Calculating the accuracy took ", time.time()-accstart, " seconds.", sep="")
+            self.delWhidden_last = np.zeros((len(self.hiddenUnit), 785)) # uses entire training set
+            self.delWoutput_last = np.zeros((10,len(self.hiddenUnit)+1))
         return
 
     # generates a confusion matrix with the weights at the time it is called
@@ -210,13 +210,13 @@ class Network:
             continue
         return np.array(filteredDataSet)
     
-    def runEXPT1(self):
+    def runEXPT(self):
         # I used this method to run bits and pieces of my code at a time.
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
         validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
         np.random.shuffle(trainingSet)
 
-        self.run_epoch(trainingSet, validationSet, 50)
+        self.run_epoch(trainingSet, validationSet, 1)
         self.generate_confusion_matrix(validationSet)
         return
 
@@ -234,8 +234,10 @@ class Network:
 if __name__ == '__main__':
     setUpTrainingSet()
     setUpValidationSet()
-    test = Network(100, "accuracy100_15k_expt2.csv", "confusion_matrix100_15k_expt2.csv")
-    test.runEXPT2(15000)
+    test = Network(100, "test.csv", "test.csv")
+    test.runEXPT()
 
-    test2 = Network(100, "accuracy100_30k_expt2.csv", "confusion_matrix100_30k_expt2.csv")
-    test2.runEXPT2(30000)
+    #test.runEXPT2(15000)
+
+    #test2 = Network(100, "accuracy100_30k_expt2.csv", "confusion_matrix100_30k_expt2.csv")
+    #test2.runEXPT2(30000)
