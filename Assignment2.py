@@ -148,7 +148,7 @@ class Network:
         for j in range(len(self.hiddenUnit)):
             currentDelWhidden = np.add((dataLine[1:] * hiddenDelta[j] * self.learningRate), (self.delWhidden_last[j] * self.momentum))
             self.hiddenUnit[j] = np.add(self.hiddenUnit[j], (currentDelWhidden))
-            self.delWhidden_last[k] = currentDelWhidden
+            self.delWhidden_last[j] = currentDelWhidden
         return
 
     # Runs epochstorun number of epochs using the trainingSet (passed in as a numpy array). Prints run times in seconds and accuracies.    
