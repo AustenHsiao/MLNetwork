@@ -63,6 +63,12 @@ class Network:
         self.accFile = accuracyfilename
         self.cMatFile = cmatrixfilename
 
+        ### EXPT 3 VARIABLES BELOW ###
+        self.momentum = 0.25 # momentum value. Manually change this for each run. If running expt1 or 2, momentum = 0
+        self.delWhidden_last = np.zeros((numberOfHiddenUnits, 785)) # uses entire training set
+        self.delWoutput_last = np.zeros((10,numberOfHiddenUnits+1)) 
+
+
     # reportAccuracy will print the accuracy for the given neural network based off the trainingSet. 
     # The variable, "trainingSet" is a numpy array of training set data. 
     def reportAccuracy(self, currentEpoch, trainingSet, validationSet):
@@ -134,12 +140,18 @@ class Network:
 
         # apply the deltaW formula to each weight from hidden layer to output layer
         for k in range(10):
-            self.outputUnit[k] = np.add(self.outputUnit[k], (np.array(hiddenLayerActivations) * outputDelta[k] * self.learningRate))
+            currentDelWout = np.add((np.array(hiddenLayerActivations) * outputDelta[k] * self.learningRate), (self.delWoutput_last[k] * self.momentum))
+            self.outputUnit[k] = np.add(self.outputUnit[k], (currentDelWout))
+            self.delWoutput_last[k] = currentDelWout
 
         # apply deltaW formula to each weight from input to hidden layer
         for j in range(len(self.hiddenUnit)):
-            self.hiddenUnit[j] = np.add(self.hiddenUnit[j], (dataLine[1:] * hiddenDelta[j] * self.learningRate))
+            currentDelWhidden = np.add((dataLine[1:] * hiddenDelta[j] * self.learningRate), (self.delWhidden_last[j] * self.momentum))
+            self.hiddenUnit[j] = np.add(self.hiddenUnit[j], (currentDelWhidden))
+            self.delWhidden_last[k] = currentDelWhidden
         return
+
+        
 
     # Runs epochstorun number of epochs using the trainingSet (passed in as a numpy array). Prints run times in seconds and accuracies.    
     def run_epoch(self, trainingSet, validationSet, epochstorun):
