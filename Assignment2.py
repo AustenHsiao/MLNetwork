@@ -73,6 +73,9 @@ class Network:
     # The variable, "trainingSet" is a numpy array of training set data. 
     def reportAccuracy(self, currentEpoch, trainingSet, validationSet):
         hits = 0
+
+        # My method forward propagates until the end. Along the way,
+        # I generate matrices that represent the activations.
         for inputUnit in trainingSet:
             hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer.
             
@@ -83,11 +86,13 @@ class Network:
             for outputUnitIndex in range(10):
                 outputLayerActivations[outputUnitIndex] = sigmoid(np.dot(self.outputUnit[outputUnitIndex], hiddenLayerActivations))
 
+            # At the end of forward propragation, just as in assignment 1, we accept the highest value as the predicted class.
             if outputLayerActivations.index(max(outputLayerActivations)) == inputUnit[0]:
                 hits += 1
         tacc = hits/len(trainingSet)
         print("Training set accuracy for epoch ", currentEpoch, ": ", tacc, sep="")
 
+        ##### Duplicate of above but applied to test data
         hits = 0
         for inputUnit in validationSet:
             hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer.
@@ -104,11 +109,12 @@ class Network:
         vacc = hits/len(validationSet)
         print("Validation set accuracy for epoch ", currentEpoch, ": ", vacc, sep="")
 
-        ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
+        # Once the data is available, it gets appended to a file.
         pd.DataFrame({'epoch':[currentEpoch],'training':[tacc],'validation':[vacc]}, columns=['epoch','training','validation']).to_csv(self.accFile, mode='a', header=False, index=False)
-        ####################################################################################################################################################################
         return
 
+    ## This method is similar to the accuracy method until halfway through where
+    # it uses the formulas described in class to change the weights.
     def train_with_single_data(self, dataLine):
         hiddenLayerActivations = [1] * (len(self.hiddenUnit) + 1) # plus one for the bias in the output layer. 
         
@@ -190,9 +196,7 @@ class Network:
             actual = int(inputUnit[0])
             cMatrix[actual][predicted] += 1
 
-        ########################################## CHANGE CSV NAME SO IT DOESNT GET MESSED UP ##############################################################################
         pd.DataFrame(data=cMatrix).to_csv(self.cMatFile, mode='a', header=False, index=False)
-        ####################################################################################################################################################################
         return
 
     # evenFilter30k takes in the full trainingSet and returns a numpy array of length n (resulting array is approximately even)-- Used in expt2
@@ -200,7 +204,9 @@ class Network:
         evenCheck = [0] * 10
         filteredDataSet = []
         evenCap = n/10
-
+        
+        # My method creates a zeroed array of size 10. As we add training data, we increment the counters and reject
+        # The data if the counter exceeds the cap.
         for i in trainingSet.tolist():
             if evenCheck[int(i[0])] < evenCap:
                 filteredDataSet.append(i)
@@ -211,7 +217,7 @@ class Network:
         return np.array(filteredDataSet)
     
     def runEXPT(self):
-        # I used this method to run bits and pieces of my code at a time.
+        # This method runs the experiment
         trainingSet = pd.read_csv("scaledTS.csv", header=None).to_numpy()
         validationSet = pd.read_csv("scaledVS.csv", header=None).to_numpy()
         np.random.shuffle(trainingSet)
